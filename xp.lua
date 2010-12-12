@@ -7,45 +7,55 @@
 	Copyright (c) 2008-2009 Jason Greer
 	All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without 
+	Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions are met:
 
-		* Redistributions of source code must retain the above copyright notice, 
+		* Redistributions of source code must retain the above copyright notice,
 		  this list of conditions and the following disclaimer.
 		* Redistributions in binary form must reproduce the above copyright
-		  notice, this list of conditions and the following disclaimer in the 
+		  notice, this list of conditions and the following disclaimer in the
 		  documentation and/or other materials provided with the distribution.
-		* Neither the name of the author nor the names of its contributors may 
-		  be used to endorse or promote products derived from this software 
+		* Neither the name of the author nor the names of its contributors may
+		  be used to endorse or promote products derived from this software
 		  without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
-	LIABLE FORANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+	LIABLE FORANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local XP_FORMAT = '%s / %s [%s%%]'
-local REST_FORMAT = '%s / %s (+%s) [%s%%]'
 local REP_FORMAT = '%s:  %s / %s (%s)'
 local L = LibStub('AceLocale-3.0'):GetLocale('Dominos-XP')
-local _G = getfenv(0)
 
---taken from http://lua-users.org/wiki/FormattingNumbers 
+--taken from http://lua-users.org/wiki/FormattingNumbers
 --a semi clever way to format numbers with commas (ex, 1,000,000)
-local function comma_value(n)
-	local left,num,right = string.match(tostring(n), '^([^%d]*%d)(%d*)(.-)$')
-	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
+local round = function(x)
+	return math.floor(x + 0.5)
 end
 
+local comma = function(n)
+	local left, num, right = tostring(n):match('^([^%d]*%d)(%d*)(.-)$')
+	return left .. (num:reverse():gsub('(%d%d%d)','%1,'):reverse()) .. right
+end
 
+local short = TextStatusBar_CapDisplayOfNumericValue
+
+local textEnv = {
+	format = string.format,
+	math = math,
+	string = string,
+	short = short,
+	round = round,
+	comma = comma,
+}
 
 --[[ Module Stuff ]]--
 
@@ -125,7 +135,7 @@ end
 function XP:OnClick(button)
 	if button == 'RightButton' and FFF_ReputationWatchBar_OnClick then
 		self:SetAlwaysShowXP(false)
-		FFF_ReputationWatchBar_OnClick(self, button)		
+		FFF_ReputationWatchBar_OnClick(self, button)
 	else
 		self:SetAlwaysShowXP(not self.sets.alwaysShowXP)
 		self:OnEnter()
@@ -143,7 +153,7 @@ end
 
 function XP:OnLeave()
 	self:UpdateTextShown()
-	
+
 	if (FFF_ReputationWatchBar_OnLeave) then
 		FFF_ReputationWatchBar_OnLeave(self)
 	end
@@ -177,6 +187,7 @@ end
 --[[ Experience ]]--
 
 function XP:WatchExperience()
+	self.watchingXP = true
 	self:UnregisterAllEvents()
 	self:SetScript('OnEvent', self.OnXPEvent)
 
@@ -203,29 +214,56 @@ function XP:OnXPEvent(event)
 end
 
 function XP:UpdateExperience()
-	local value = UnitXP('player')
-	local max = UnitXPMax('player')
-	local pct = math.floor((value / max) * 100 + 0.5)
-
-	self.value:SetMinMaxValues(0, max)
-	self.value:SetValue(value)
-
+	local xp, xpMax = UnitXP('player'), UnitXPMax('player')
+	local tnl = xpMax - xp
+	local pct = round((xp / xpMax) * 100)
 	local rest = GetXPExhaustion()
-	self.rest:SetMinMaxValues(0, max)
-	
-	if rest then
-		self.rest:SetValue(value + rest)
-		self.text:SetFormattedText(REST_FORMAT, comma_value(value), comma_value(max), comma_value(rest), pct)
+
+	--update statusbar
+	self.value:SetMinMaxValues(0, xpMax)
+	self.value:SetValue(xp)
+	self.rest:SetMinMaxValues(0, xpMax)
+
+	if rest and rest > 0 then
+		self.rest:SetValue(xp + rest)
 	else
 		self.rest:SetValue(0)
-		self.text:SetFormattedText(XP_FORMAT, comma_value(value), comma_value(max), pct)
+	end
+
+	--update statusbar text
+	textEnv.xp = xp
+	textEnv.xpMax = xpMax
+	textEnv.tnl = tnl
+	textEnv.pct = pct
+	textEnv.rest = rest
+
+	local getXPText = assert(loadstring(self:GetXPFormat(), "getXPText"))
+	setfenv(getXPText, textEnv)
+	self.text:SetText(getXPText())
+end
+
+function XP:SetXPFormat(fmt)
+	self.sets.xpFormat = fmt
+	if self.watchingXP then
+		self:UpdateExperience()
 	end
 end
+
+function XP:GetXPFormat()
+	return self.sets.xpFormat or [[
+		if rest and rest > 0 then
+			return format("%s / %s (+%s)", comma(xp), comma(xpMax), comma(rest))
+		end
+		return format("%s / %s", comma(xp), comma(xpMax))
+	]]
+end
+
 
 
 --[[ Reputation ]]--
 
 function XP:WatchReputation()
+	self.watchingXP = nil
 	self:UnregisterAllEvents()
 	self:RegisterEvent('UPDATE_FACTION')
 	self:SetScript('OnEvent', self.OnRepEvent)
@@ -254,9 +292,31 @@ function XP:UpdateReputation()
 
 	self.value:SetMinMaxValues(0, max)
 	self.value:SetValue(value)
+	
+	--update statusbar text
+	textEnv.faction = name
+	textEnv.rep = value
+	textEnv.repMax = max
+	textEnv.tnl = max - value
+	textEnv.pct = round(value / max * 100)
+	textEnv.repLevel = _G['FACTION_STANDING_LABEL' .. reaction]
 
-	local repLevel = _G['FACTION_STANDING_LABEL' .. reaction]
-	self.text:SetFormattedText(REP_FORMAT, name, comma_value(value), comma_value(max), repLevel)
+	local getRepText = assert(loadstring(self:GetRepFormat(), "getRepText"))
+	setfenv(getRepText, textEnv)
+	self.text:SetText(getRepText())
+end
+
+function XP:SetRepFormat(fmt)
+	self.sets.repFormat = fmt
+	if not self.watchingXP then
+		self:UpdateReputation()
+	end
+end
+
+function XP:GetRepFormat()
+	return self.sets.repFormat or [[
+		return format('%s: %s / %s (%s)', faction, comma(rep), comma(repMax), repLevel) 
+	]]
 end
 
 
@@ -274,7 +334,7 @@ end
 
 function XP:UpdateTexture()
 	local LSM = LibStub('LibSharedMedia-3.0', true)
-	
+
 	local texture = (LSM and LSM:Fetch('statusbar', self.sets.texture)) or DEFAULT_STATUSBAR_TEXTURE
 	self.value:SetStatusBarTexture(texture)
 	if self.value:GetStatusBarTexture().SetHorizTile then
@@ -415,10 +475,10 @@ local function Panel_UpdateList(self)
 
 	local scroll = self.scroll
 	FauxScrollFrame_Update(scroll, #textures, #self.buttons, height + offset)
-	
+
 	for i,button in pairs(self.buttons) do
 		local index = i + scroll.offset
-	
+
 		if index <= #textures then
 			button:SetText(textures[index])
 			button.bg:SetTexture(SML:Fetch('statusbar', textures[index]))
