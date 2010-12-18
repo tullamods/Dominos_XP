@@ -252,9 +252,9 @@ end
 function XP:GetXPFormat()
 	return self.sets.xpFormat or [[
 		if rest and rest > 0 then
-			return format("%s / %s (+%s)", comma(xp), comma(xpMax), comma(rest))
+			return format("%s / %s (+%s) [%s%%]", comma(xp), comma(xpMax), comma(rest), pct)
 		end
-		return format("%s / %s", comma(xp), comma(xpMax))
+		return format("%s / %s [%s%%]", comma(xp), comma(xpMax), pct)
 	]]
 end
 
