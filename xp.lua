@@ -120,11 +120,16 @@ function XP:Load()
 	value:SetAllPoints(self)
 	self.value = value
 
-	local text = value:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
+	local blank = CreateFrame('StatusBar', nil, value)
+	blank:EnableMouse(false)
+	blank:SetAllPoints(self)
+	self.blank = blank
+
+	local text = blank:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
 	text:SetPoint('CENTER')
 	self.text = text
 
-	local click = CreateFrame('Button', nil, value)
+	local click = CreateFrame('Button', nil, blank)
 	click:SetScript('OnClick', function(_, ...) self:OnClick(...) end)
 	click:SetScript('OnEnter', function(_, ...) self:OnEnter(...) end)
 	click:SetScript('OnLeave', function(_, ...) self:OnLeave(...) end)
