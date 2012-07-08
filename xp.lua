@@ -221,7 +221,7 @@ end
 function XP:UpdateExperience()
 	local xp, xpMax = UnitXP('player'), UnitXPMax('player')
 	local tnl = xpMax - xp
-	local pct = round((xp / xpMax) * 100)
+	local pct = (xpMax > 0 and round((xp / xpMax) * 100)) or 0
 	local rest = GetXPExhaustion()
 
 	--update statusbar
