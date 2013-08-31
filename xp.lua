@@ -59,15 +59,15 @@ local textEnv = {
 
 --[[ Module Stuff ]]--
 
-local DXP = Dominos:NewModule('xp')
+local XpBarController = Dominos:NewModule('XpBar')
 local XP
 
-function DXP:Load()
+function XpBarController:Load()
 	self.frame = XP:New()
 	self.frame:SetFrameStrata('BACKGROUND')
 end
 
-function DXP:Unload()
+function XpBarController:Unload()
 	self.frame:Free()
 end
 
