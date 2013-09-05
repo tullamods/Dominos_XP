@@ -299,6 +299,9 @@ function XP:UpdateReputation()
 	   end
 	end
 
+	max = max - min
+	value = value - min	
+
 	local color = FACTION_BAR_COLORS[reaction]
 	self.value:SetStatusBarColor(color.r, color.g, color.b)
 	self.bg:SetVertexColor(color.r - 0.3, color.g - 0.3, color.b - 0.3, 0.6)
