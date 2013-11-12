@@ -460,7 +460,7 @@ local NUM_ITEMS = 9
 local width, height, offset = 140, 20, 2
 
 local function TextureButton_OnClick(self)
-	DXP.frame:SetTexture(self:GetText())
+	XpBarController.frame:SetTexture(self:GetText())
 	self:GetParent():UpdateList()
 end
 
@@ -492,7 +492,7 @@ end
 local function Panel_UpdateList(self)
 	local SML = LibStub('LibSharedMedia-3.0')
 	local textures = LibStub('LibSharedMedia-3.0'):List('statusbar')
-	local currentTexture = DXP.frame.sets.texture
+	local currentTexture = XpBarController.frame.sets.texture
 
 	local scroll = self.scroll
 	FauxScrollFrame_Update(scroll, #textures, #self.buttons, height + offset)
