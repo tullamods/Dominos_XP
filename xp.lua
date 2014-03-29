@@ -33,6 +33,7 @@
 --]]
 
 local REP_FORMAT = '%s:  %s / %s (%s)'
+local FRIEND_ID_FACTION_COLOR_INDEX = 5 --color index to use for friend factions 
 local L = LibStub('AceLocale-3.0'):GetLocale('Dominos-XP')
 
 --taken from http://lua-users.org/wiki/FormattingNumbers
@@ -293,6 +294,7 @@ function XP:UpdateReputation()
 	if friendID then 
 	   if nextFriendThreshold then
 	       min, max, value = friendThreshold, nextFriendThreshold, friendRep
+	       reaction = FRIEND_ID_FACTION_COLOR_INDEX
 	   else
 	       -- max rank, make it look like a full bar
 	       min, max, value = 0, 1, 1;
@@ -357,15 +359,15 @@ function XP:UpdateTexture()
 	local LSM = LibStub('LibSharedMedia-3.0', true)
 
 	local texture = (LSM and LSM:Fetch('statusbar', self.sets.texture)) or DEFAULT_STATUSBAR_TEXTURE
+
 	self.value:SetStatusBarTexture(texture)
-	if self.value:GetStatusBarTexture().SetHorizTile then
-		self.value:GetStatusBarTexture():SetHorizTile(false)
-	end
+	self.value:GetStatusBarTexture():SetHorizTile(true)
+	
 	self.rest:SetStatusBarTexture(texture)
-	if self.rest:GetStatusBarTexture().SetHorizTile then
-		self.rest:GetStatusBarTexture():SetHorizTile(false)
-	end
+	self.rest:GetStatusBarTexture():SetHorizTile(true)
+
 	self.bg:SetTexture(texture)
+	self.bg:SetHorizTile(true)
 end
 
 function XP:SetAlwaysShowXP(enable)
