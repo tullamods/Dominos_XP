@@ -1,4 +1,4 @@
-## Interface: 50400
+## Interface: 60000
 ## Title: Dominos XP
 ## Title-zhCN: |cFF0099FF[Dominos]|r 经验条
 ## Notes: A movable experience/reputation bar
