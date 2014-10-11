@@ -104,26 +104,30 @@ function XP:GetDefaults()
 end
 
 function XP:Load()
-	local bg = self:CreateTexture(nil, 'BACKGROUND')
-	bg:SetAllPoints(self)
+	-- make sure textures are created on the header frame
+	-- since that controls show states, etc
+	local parent = self.header
+
+	local bg = parent:CreateTexture(nil, 'BACKGROUND')
+	bg:SetAllPoints(parent)
 	if bg.SetHorizTile then
 		bg:SetHorizTile(false)
 	end
 	self.bg = bg
 
-	local rest = CreateFrame('StatusBar', nil, self)
+	local rest = CreateFrame('StatusBar', nil, parent)
 	rest:EnableMouse(false)
-	rest:SetAllPoints(self)
+	rest:SetAllPoints(parent)
 	self.rest = rest
 
 	local value = CreateFrame('StatusBar', nil, rest)
 	value:EnableMouse(false)
-	value:SetAllPoints(self)
+	value:SetAllPoints(parent)
 	self.value = value
 
 	local blank = CreateFrame('StatusBar', nil, value)
 	blank:EnableMouse(false)
-	blank:SetAllPoints(self)
+	blank:SetAllPoints(parent)
 	self.blank = blank
 
 	local text = blank:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
@@ -135,7 +139,7 @@ function XP:Load()
 	click:SetScript('OnEnter', function(_, ...) self:OnEnter(...) end)
 	click:SetScript('OnLeave', function(_, ...) self:OnLeave(...) end)
 	click:RegisterForClicks('anyUp')
-	click:SetAllPoints(self)
+	click:SetAllPoints(parent)
 end
 
 function XP:OnClick(button)
