@@ -437,6 +437,9 @@ end
 local function AddLayoutPanel(menu)
 	local p = menu:NewPanel(LibStub('AceLocale-3.0'):GetLocale('Dominos-Config').Layout)
 
+	p:NewShowInOverrideUICheckbox()
+	p:NewShowInPetBattleUICheckbox()
+
 	p:NewOpacitySlider()
 	p:NewFadeSlider()
 	p:NewScaleSlider()
