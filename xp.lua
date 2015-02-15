@@ -78,17 +78,18 @@ end
 XP = Dominos:CreateClass('Frame', Dominos.Frame)
 
 function XP:New()
-	local f = self.super.New(self, 'xp')
-	if not f.value then
-		f:Load()
+	local frame = XP.proto.New(self, 'xp')
+
+	if not frame.value then
+		frame:Load()
 	end
 
-	f:Layout()
-	f:UpdateTexture()
-	f:UpdateWatch()
-	f:UpdateTextShown()
+	frame:Layout()
+	frame:UpdateTexture()
+	frame:UpdateWatch()
+	frame:UpdateTextShown()
 
-	return f
+	return frame
 end
 
 function XP:GetDefaults()
