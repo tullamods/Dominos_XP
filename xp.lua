@@ -440,24 +440,34 @@ local function CreateHeightSlider(p)
 end
 
 local function AddLayoutPanel(menu)
-	local p = menu:NewPanel(LibStub('AceLocale-3.0'):GetLocale('Dominos-Config').Layout)
+	local panel = menu:NewPanel(LibStub('AceLocale-3.0'):GetLocale('Dominos-Config').Layout)
 
-	p:NewShowInOverrideUICheckbox()
-	p:NewShowInPetBattleUICheckbox()
+	panel:NewOpacitySlider()
+	panel:NewFadeSlider()
+	panel:NewScaleSlider()
+	CreateHeightSlider(panel)
+	CreateWidthSlider(panel)
 
-	p:NewOpacitySlider()
-	p:NewFadeSlider()
-	p:NewScaleSlider()
-	CreateHeightSlider(p)
-	CreateWidthSlider(p)
-
-	local showText = p:NewCheckButton(L.AlwaysShowText)
+	local showText = panel:NewCheckButton(L.AlwaysShowText)
 	showText:SetScript('OnClick', function(self) self:GetParent().owner:ToggleText(self:GetChecked()) end)
 	showText:SetScript('OnShow', function(self) self:SetChecked(self:GetParent().owner.sets.alwaysShowText) end)
 
-	local showXP = p:NewCheckButton(L.AlwaysShowXP)
+	local showXP = panel:NewCheckButton(L.AlwaysShowXP)
 	showXP:SetScript('OnClick', function(self) self:GetParent().owner:SetAlwaysShowXP(self:GetChecked()) end)
 	showXP:SetScript('OnShow', function(self) self:SetChecked(self:GetParent().owner.sets.alwaysShowXP) end)
+
+	return panel
+end
+
+local function AddAdvancedPanel(menu)
+	local panel = menu:NewPanel(LibStub('AceLocale-3.0'):GetLocale('Dominos-Config').Advanced)
+
+	panel.width = 186
+
+	panel:NewShowInOverrideUICheckbox()
+	panel:NewShowInPetBattleUICheckbox()
+
+	return panel
 end
 
 
@@ -556,8 +566,10 @@ end
 
 function XP:CreateMenu()
 	local menu = Dominos:NewMenu(self.id)
+
 	AddLayoutPanel(menu)
 	AddTexturePanel(menu)
+	AddAdvancedPanel(menu)
 
 	self.menu = menu
 end
